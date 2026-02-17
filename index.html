@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inverted Pendulum Optimization</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+    <div class="container">
+        <div class="simulation-panel">
+            <h2>Симуляція</h2>
+            <canvas id="simCanvas" width="800" height="400"></canvas>
+            
+            <div class="stats">
+                <p>Час: <span id="timeDisplay">0.00</span> с</p>
+                <p>Кут: <span id="angleDisplay">0.00</span> rad</p>
+                <p>Позиція: <span id="posDisplay">0.00</span> m</p>
+            </div>
+        </div>
+
+        <div class="control-panel">
+            <h2>Керування</h2>
+            
+            <div class="control-group">
+                <button id="btnStart" class="primary">Старт / Рестарт</button>
+                <button id="btnPause">Пауза</button>
+            </div>
+
+            <div class="control-group">
+                <label>Режим керування:</label>
+                <select id="controlMode">
+                    <option value="manual">Ручне (Стрілки)</option>
+                    <option value="fuzzy">Нечіткий регулятор (Fuzzy)</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <h3>Оптимізація</h3>
+                <button id="btnTrainGA" class="accent">Навчити (Генетика)</button>
+                <button id="btnTrainPSO" class="accent">Навчити (Рій частинок)</button>
+                <div id="trainingStatus" class="status-box">Очікування...</div>
+            </div>
+
+            <div class="control-group">
+                <h3>Збурення (Тест)</h3>
+                <button onclick="window.applyForce(-10)">⬅️ Штовхнути</button>
+                <button onclick="window.applyForce(10)">Штовхнути ➡️</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="./js/main.js"></script>
+</body>
+</html>
