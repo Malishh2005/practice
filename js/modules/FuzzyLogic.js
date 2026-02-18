@@ -4,6 +4,10 @@ export default class FuzzyLogic {
         this.K_dtheta = 1.0;                
         this.K_out = 10.0; // Трохи піднімемо силу, бо ми збільшили тертя (b2)
 
+        // НОВІ КОЕФІЦІЄНТИ: Зір на позицію
+        this.K_x = 0.03;  // Наскільки сильно хочемо повернутися на 0
+        this.K_v = 0.05;  // Ефект гальмування візка
+
         this.rulesOutput = {
             "NB": -1.0, "NM": -0.66, "NS": -0.33,
             "ZE": 0.0,
@@ -18,8 +22,7 @@ export default class FuzzyLogic {
 
     compute(state) {
         // ... (весь код фаззифікації і правил лишається тим самим) ...
-        let error = state.theta * this.K_theta;      
-        let dError = state.omega * this.K_dtheta;    
+        let error = (state.theta + state.x * this.K_x + state.v * this.K_v) * this.K_theta;        let dError = state.omega * this.K_dtheta;    
         error = Math.max(-1, Math.min(1, error));
         dError = Math.max(-1, Math.min(1, dError));
         
@@ -63,7 +66,7 @@ export default class FuzzyLogic {
         this.prevForce = smoothedForce; // Запам'ятовуємо на наступний раз
 
         // Обмеження
-        const MAX_FORCE = 150; // Даємо трохи більше сили, бо візок став "важчим"
+        const MAX_FORCE = 30; // Даємо трохи більше сили, бо візок став "важчим"
         if (smoothedForce > MAX_FORCE) smoothedForce = MAX_FORCE;
         if (smoothedForce < -MAX_FORCE) smoothedForce = -MAX_FORCE;
 
