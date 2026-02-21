@@ -95,6 +95,9 @@ if (btnTrainPSO) {
 
             // UI
             statusBox.innerHTML = `<b>PSO Готово!</b><br>K_a: ${bestParams[0].toFixed(2)}, K_s: ${bestParams[1].toFixed(2)}, F: ${bestParams[2].toFixed(2)}<br>K_x: ${bestParams[3].toFixed(3)}, K_v: ${bestParams[4].toFixed(3)}`;
+            // ЗАПИС У ТАБЛИЦЮ:
+            let bestFitness = pso.globalBest.fitness; 
+            logToTable('Рій Частинок (PSO)', bestFitness, bestParams);
             statusBox.style.background = "#d4edda";
             statusBox.style.color = "#155724";
             
@@ -137,6 +140,9 @@ if (btnTrainGA) {
 
             // 4. Оновлення інтерфейсу
             statusBox.innerHTML = `<b>GA Готово!</b><br>K_a: ${bestGenes[0].toFixed(2)}, K_s: ${bestGenes[1].toFixed(2)}, F: ${bestGenes[2].toFixed(2)}<br>K_x: ${bestGenes[3].toFixed(3)}, K_v: ${bestGenes[4].toFixed(3)}`;
+            // ЗАПИС У ТАБЛИЦЮ:
+            let bestFitness = ga.population[0].fitness; // Отримуємо оцінку кращого рішення
+            logToTable('Генетичний Алгоритм (GA)', bestFitness, bestGenes);
             statusBox.style.background = "#d4edda"; // Зелений
             statusBox.style.color = "#155724";
             
@@ -225,3 +231,76 @@ function restart() {
 
 // Запуск циклу
 loop();
+
+// ==========================================
+// ЛОГІКА ВКЛАДОК ТА ТАБЛИЦІ РЕЗУЛЬТАТІВ
+// ==========================================
+
+// 1. Перемикання вкладок
+const tabSimBtn = document.getElementById('tabSimBtn');
+const tabResBtn = document.getElementById('tabResBtn');
+const tabSimulation = document.getElementById('tabSimulation');
+const tabResults = document.getElementById('tabResults');
+
+tabSimBtn.addEventListener('click', () => {
+    tabSimBtn.classList.add('active');
+    tabResBtn.classList.remove('active');
+    tabSimulation.classList.add('active');
+    tabResults.classList.remove('active');
+});
+
+tabResBtn.addEventListener('click', () => {
+    tabResBtn.classList.add('active');
+    tabSimBtn.classList.remove('active');
+    tabResults.classList.add('active');
+    tabSimulation.classList.remove('active');
+});
+
+// 2. Функція запису результатів у таблицю
+function logToTable(optimizerName, fitness, genes) {
+    const tbody = document.getElementById('resultsBody');
+    
+    // Перевіряємо, який метод фізики був обраний
+    const integratorName = selectIntegrator.value === 'rk4' ? 'Рунге-Кутта (RK4)' : 'Ейлер';
+    const timeStr = new Date().toLocaleTimeString();
+    
+    const row = document.createElement('tr');
+    row.innerHTML = `
+        <td>${timeStr}</td>
+        <td><b>${optimizerName}</b></td>
+        <td>${integratorName}</td>
+        <td style="color: green; font-weight: bold;">${fitness.toFixed(4)}</td>
+        <td>${genes[0].toFixed(2)}</td>
+        <td>${genes[1].toFixed(2)}</td>
+        <td>${genes[2].toFixed(2)}</td>
+        <td>${genes[3].toFixed(4)}</td>
+        <td>${genes[4].toFixed(4)}</td>
+    `;
+    
+    // Додаємо новий результат на початок таблиці
+    tbody.insertBefore(row, tbody.firstChild);
+}
+
+// 3. Експорт таблиці в CSV
+document.getElementById('btnExportCSV').addEventListener('click', () => {
+    let csvContent = "data:text/csv;charset=utf-8,%EF%BB%BF"; // %EF%BB%BF додає підтримку UTF-8 для Excel
+    csvContent += "Time,Optimizer,Physics Method,Fitness,K_theta,K_dtheta,K_out,K_x,K_v\n";
+    
+    const rows = document.querySelectorAll("#resultsTable tbody tr");
+    rows.forEach(row => {
+        let rowData = [];
+        row.querySelectorAll("td").forEach(cell => {
+            // Замінюємо коми на крапки, щоб не ламався формат CSV
+            rowData.push(cell.innerText.replace(/,/g, ".")); 
+        });
+        csvContent += rowData.join(",") + "\n";
+    });
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "optimization_results.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+});

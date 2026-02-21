@@ -9,53 +9,88 @@
 </head>
 <body>
 
-    <div class="container">
-        <div class="simulation-panel">
-            <h2>Симуляція</h2>
-            <canvas id="simCanvas" width="800" height="400"></canvas>
-            
-            <div class="stats">
-                <p>Час: <span id="timeDisplay">0.00</span> с</p>
-                <p>Кут: <span id="angleDisplay">0.00</span> rad</p>
-                <p>Позиція: <span id="posDisplay">0.00</span> m</p>
+    <div class="app-container">
+        <div class="tabs">
+            <button id="tabSimBtn" class="tab-btn active">Симуляція</button>
+            <button id="tabResBtn" class="tab-btn">Результати (Таблиця)</button>
+        </div>
+
+        <div id="tabSimulation" class="tab-pane active">
+            <div class="container">
+                <div class="simulation-panel">
+                    <h2>Симуляція</h2>
+                    <canvas id="simCanvas" width="800" height="400"></canvas>
+                    
+                    <div class="stats">
+                        <p>Час: <span id="timeDisplay">0.00</span> с</p>
+                        <p>Кут: <span id="angleDisplay">0.00</span> rad</p>
+                        <p>Позиція: <span id="posDisplay">0.00</span> m</p>
+                    </div>
+                </div>
+
+                <div class="control-panel">
+                    <h2>Керування</h2>
+                    
+                    <div class="control-group">
+                        <button id="btnStart" class="primary">Старт / Рестарт</button>
+                        <button id="btnPause">Пауза</button>
+                    </div>
+
+                    <div class="control-group">
+                        <label>Метод інтегрування:</label>
+                        <select id="integratorSelect">
+                            <option value="rk4">Рунге-Кутта (RK4)</option>
+                            <option value="euler">Ейлер (Простий)</option>
+                        </select>
+                    </div>
+
+                    <div class="control-group">
+                        <label>Режим керування:</label>
+                        <select id="controlMode">
+                            <option value="manual">Ручне (Стрілки)</option>
+                            <option value="fuzzy">Нечіткий регулятор (Fuzzy)</option>
+                        </select>
+                    </div>
+
+                    <div class="control-group">
+                        <h3>Оптимізація</h3>
+                        <button id="btnTrainGA" class="accent">Навчити (Генетика)</button>
+                        <button id="btnTrainPSO" class="accent">Навчити (Рій частинок)</button>
+                        <div id="trainingStatus" class="status-box">Очікування...</div>
+                    </div>
+
+                    <div class="control-group">
+                        <h3>Збурення (Тест)</h3>
+                        <button onclick="window.applyForce(-10)">⬅️ Штовхнути</button>
+                        <button onclick="window.applyForce(10)">Штовхнути ➡️</button>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="control-panel">
-            <h2>Керування</h2>
-            
-            <div class="control-group">
-                <button id="btnStart" class="primary">Старт / Рестарт</button>
-                <button id="btnPause">Пауза</button>
-            </div>
-
-            <div class="control-group">
-                <label>Метод інтегрування:</label>
-                <select id="integratorSelect">
-                    <option value="rk4">Рунге-Кутта (RK4)</option>
-                    <option value="euler">Ейлер (Простий)</option>
-                </select>
-            </div>
-
-            <div class="control-group">
-                <label>Режим керування:</label>
-                <select id="controlMode">
-                    <option value="manual">Ручне (Стрілки)</option>
-                    <option value="fuzzy">Нечіткий регулятор (Fuzzy)</option>
-                </select>
-            </div>
-
-            <div class="control-group">
-                <h3>Оптимізація</h3>
-                <button id="btnTrainGA" class="accent">Навчити (Генетика)</button>
-                <button id="btnTrainPSO" class="accent">Навчити (Рій частинок)</button>
-                <div id="trainingStatus" class="status-box">Очікування...</div>
-            </div>
-
-            <div class="control-group">
-                <h3>Збурення (Тест)</h3>
-                <button onclick="window.applyForce(-10)">⬅️ Штовхнути</button>
-                <button onclick="window.applyForce(10)">Штовхнути ➡️</button>
+        <div id="tabResults" class="tab-pane">
+            <div class="container results-container">
+                <h2>Історія Оптимізацій</h2>
+                <p>Тут зберігаються найкращі параметри, знайдені після кожного натискання кнопки "Навчити". Чим вищий <b>Fitness</b>, тим краще система балансує.</p>
+                
+                <table class="styled-table" id="resultsTable">
+                    <thead>
+                        <tr>
+                            <th>Час</th>
+                            <th>Метод Оптимізації</th>
+                            <th>Метод Фізики</th>
+                            <th>Fitness (Оцінка)</th>
+                            <th>K_a (Кут)</th>
+                            <th>K_s (Кут. швидк)</th>
+                            <th>F (Сила)</th>
+                            <th>K_x (Позиція)</th>
+                            <th>K_v (Швидк. візка)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsBody">
+                        </tbody>
+                </table>
+                <button id="btnExportCSV" class="primary" style="width: auto; padding: 10px 20px;">⬇️ Експорт у CSV (Excel)</button>
             </div>
         </div>
     </div>

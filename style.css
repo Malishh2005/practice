@@ -1,70 +1,341 @@
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f0f2f5;
+/* =========================================
+   СУЧАСНИЙ ДИЗАЙН: СИМУЛЯТОР МАЯТНИКА
+   ========================================= */
+
+/* --- 1. Змінні кольорів та розмірів (Тема) --- */
+:root {
+    --primary: #4361ee;
+    --primary-hover: #3a56d4;
+    --success: #10b981;
+    --success-hover: #059669;
+    --danger: #ef4444;
+    --bg-color: #f1f5f9;
+    --card-bg: #ffffff;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
+    --shadow-md: 0 10px 25px rgba(0,0,0,0.05);
+    --radius-lg: 16px;
+    --radius-md: 8px;
+    --font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+/* --- 2. Базові налаштування --- */
+* {
+    box-sizing: border-box;
     margin: 0;
-    padding: 20px;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-family);
+    background-color: var(--bg-color);
+    color: var(--text-main);
     display: flex;
     justify-content: center;
+    padding: 40px 20px;
+    line-height: 1.5;
+}
+
+h2 {
+    font-size: 1.5rem;
+    color: var(--text-main);
+    margin-bottom: 20px;
+    font-weight: 700;
+}
+
+h3 {
+    font-size: 1.1rem;
+    color: var(--text-muted);
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* --- 3. Головний контейнер та Лейаут --- */
+.app-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 1200px;
 }
 
 .container {
     display: flex;
-    gap: 20px;
-    background: white;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    gap: 30px;
+    width: 100%;
+    animation: fadeIn 0.4s ease-out;
 }
 
-canvas {
-    background: #ffffff;
-    border: 2px solid #e1e4e8;
-    border-radius: 8px;
-    cursor: crosshair;
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- 4. Картки (Панелі) --- */
+.simulation-panel, .control-panel, .results-container {
+    background: var(--card-bg);
+    padding: 30px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-color);
+}
+
+.simulation-panel {
+    flex: 2; /* Займає більше місця */
+    display: flex;
+    flex-direction: column;
 }
 
 .control-panel {
-    width: 300px;
+    flex: 1;
+    min-width: 320px;
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 25px;
 }
 
-.control-group {
-    background: #f8f9fa;
-    padding: 15px;
-    border-radius: 8px;
-    border: 1px solid #e9ecef;
-}
-
-button {
-    padding: 10px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
+/* --- 5. Канвас (Екран симуляції) --- */
+canvas {
+    background: #f8fafc;
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-md);
     width: 100%;
-    margin-bottom: 5px;
-    transition: 0.2s;
-}
-
-button:hover { opacity: 0.9; }
-button.primary { background-color: #007bff; color: white; }
-button.accent { background-color: #28a745; color: white; }
-
-.status-box {
-    margin-top: 10px;
-    padding: 10px;
-    background: #e2e3e5;
-    border-radius: 4px;
-    font-size: 0.9em;
-    text-align: center;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+    cursor: crosshair;
 }
 
 .stats {
     display: flex;
-    justify-content: space-between;
-    margin-top: 10px;
-    font-family: monospace;
+    justify-content: space-around;
+    margin-top: 20px;
+    padding: 15px;
+    background: var(--bg-color);
+    border-radius: var(--radius-md);
+    font-family: 'Courier New', Courier, monospace;
     font-size: 1.1em;
+    font-weight: 600;
+    color: var(--primary);
+}
+
+.stats span {
+    color: var(--text-main);
+}
+
+/* --- 6. Елементи керування (Групи, Селекти, Кнопки) --- */
+.control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.control-group:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+label {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--text-main);
+}
+
+select {
+    width: 100%;
+    padding: 12px 15px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-color);
+    font-family: var(--font-family);
+    font-size: 1rem;
+    color: var(--text-main);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    appearance: none; /* Прибирає стандартну стрілку браузера */
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 15px center;
+    background-size: 16px;
+}
+
+select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+}
+
+/* --- 7. Кнопки --- */
+button {
+    padding: 12px 20px;
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background-color: #e2e8f0;
+    color: var(--text-main);
+}
+
+button:hover {
+    background-color: #cbd5e1;
+    transform: translateY(-2px);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+button.primary {
+    background-color: var(--primary);
+    color: white;
+    box-shadow: 0 4px 10px rgba(67, 97, 238, 0.3);
+}
+
+button.primary:hover {
+    background-color: var(--primary-hover);
+    box-shadow: 0 6px 15px rgba(67, 97, 238, 0.4);
+}
+
+button.accent {
+    background-color: var(--success);
+    color: white;
+    box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+}
+
+button.accent:hover {
+    background-color: var(--success-hover);
+    box-shadow: 0 6px 15px rgba(16, 185, 129, 0.4);
+}
+
+.status-box {
+    margin-top: 15px;
+    padding: 15px;
+    background: #f8fafc;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    font-size: 0.9em;
+    text-align: center;
+    line-height: 1.6;
+    transition: all 0.3s ease;
+}
+
+/* --- 8. Вкладки (Tabs) --- */
+.tabs {
+    display: inline-flex;
+    background: var(--card-bg);
+    padding: 6px;
+    border-radius: 50px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 30px;
+    border: 1px solid var(--border-color);
+}
+
+.tab-btn {
+    padding: 10px 24px;
+    background: transparent;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    box-shadow: none;
+}
+
+.tab-btn:hover {
+    background: var(--bg-color);
+    transform: none;
+    color: var(--text-main);
+}
+
+.tab-btn.active {
+    background: var(--primary);
+    color: white;
+    box-shadow: 0 4px 10px rgba(67, 97, 238, 0.3);
+}
+
+.tab-pane {
+    display: none;
+    width: 100%;
+}
+
+.tab-pane.active {
+    display: flex;
+}
+
+/* --- 9. Таблиця результатів --- */
+.results-container {
+    width: 100%;
+    margin-top: 10px;
+}
+
+.results-container p {
+    color: var(--text-muted);
+    margin-bottom: 25px;
+}
+
+.styled-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0 0 25px 0;
+    font-size: 0.95rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+.styled-table thead tr {
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    text-align: left;
+}
+
+.styled-table th {
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+    padding: 15px;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.styled-table td {
+    padding: 15px;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-main);
+}
+
+.styled-table tbody tr:last-of-type td {
+    border-bottom: none;
+}
+
+.styled-table tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+.styled-table tbody tr:hover {
+    background-color: #f8fafc;
+}
+
+/* Мобільна адаптація */
+@media (max-width: 900px) {
+    .container {
+        flex-direction: column;
+    }
+    .control-panel {
+        width: 100%;
+    }
+    .styled-table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
 }
