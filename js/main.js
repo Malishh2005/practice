@@ -3,6 +3,7 @@ import View from './modules/View.js';
 import FuzzyLogic from './modules/FuzzyLogic.js';
 import GeneticAlgorithm from './modules/Genetic.js';
 import PSO from './modules/PSO.js';
+import HybridOptimizer from './modules/hybrid.js';
 
 // --- ІНІЦІАЛІЗАЦІЯ ---
 const physics = new Physics();
@@ -10,6 +11,8 @@ const view = new View('simCanvas');
 const fuzzy = new FuzzyLogic();
 const ga = new GeneticAlgorithm();
 const pso = new PSO(); 
+const hybrid = new HybridOptimizer();
+const btnTrainHybrid = document.getElementById('btnTrainHybrid');
 
 // Змінні керування
 let isPaused = false;
@@ -156,6 +159,41 @@ if (btnTrainGA) {
     });
 }
 
+// --- ЛОГІКА ГІБРИДУ (GA + PSO) ---
+if (btnTrainHybrid) {
+    btnTrainHybrid.addEventListener('click', () => {
+        statusBox.innerText = "Тренування Гібриду (GA -> PSO)... (Зачекайте)";
+        statusBox.style.background = "#e0e7ff"; // Світло-фіолетовий
+        statusBox.style.color = "#3730a3";
+
+        setTimeout(() => {
+            // Запускаємо гібридний оптимізатор
+            const result = hybrid.optimize();
+            const bestParams = result.params;
+            const bestFitness = result.fitness;
+
+            // Застосовуємо знайдені параметри до контролера
+            fuzzy.K_theta = bestParams[0];
+            fuzzy.K_dtheta = bestParams[1];
+            fuzzy.K_out = bestParams[2];
+            fuzzy.K_x = bestParams[3];
+            fuzzy.K_v = bestParams[4];
+
+            // UI
+            statusBox.innerHTML = `<b>Гібрид Готово!</b><br>K_a: ${bestParams[0].toFixed(2)}, K_s: ${bestParams[1].toFixed(2)}, F: ${bestParams[2].toFixed(2)}<br>K_x: ${bestParams[3].toFixed(3)}, K_v: ${bestParams[4].toFixed(3)}`;
+            
+            // ЗАПИС У ТАБЛИЦЮ
+            logToTable('Гібрид (GA+PSO)', bestFitness, bestParams);
+            statusBox.style.background = "#d4edda";
+            statusBox.style.color = "#155724";
+            
+            selectMode.value = 'fuzzy';
+            restart(); 
+
+        }, 50);
+    });
+}
+
 // --- ГОЛОВНИЙ ЦИКЛ СИМУЛЯЦІЇ ---
 // Додаємо змінні для імітації затримки
 let frameCount = 0;
@@ -236,31 +274,31 @@ loop();
 // ЛОГІКА ВКЛАДОК ТА ТАБЛИЦІ РЕЗУЛЬТАТІВ
 // ==========================================
 
-// 1. Перемикання вкладок
 const tabSimBtn = document.getElementById('tabSimBtn');
 const tabResBtn = document.getElementById('tabResBtn');
+const tabBenchBtn = document.getElementById('tabBenchBtn');
+
 const tabSimulation = document.getElementById('tabSimulation');
 const tabResults = document.getElementById('tabResults');
+const tabBenchmark = document.getElementById('tabBenchmark');
 
-tabSimBtn.addEventListener('click', () => {
-    tabSimBtn.classList.add('active');
-    tabResBtn.classList.remove('active');
-    tabSimulation.classList.add('active');
-    tabResults.classList.remove('active');
-});
+// Універсальна функція перемикання
+function setActiveTab(activeBtn, activePane) {
+    [tabSimBtn, tabResBtn, tabBenchBtn].forEach(btn => btn.classList.remove('active'));
+    [tabSimulation, tabResults, tabBenchmark].forEach(pane => pane.classList.remove('active'));
+    
+    activeBtn.classList.add('active');
+    activePane.classList.add('active');
+}
 
-tabResBtn.addEventListener('click', () => {
-    tabResBtn.classList.add('active');
-    tabSimBtn.classList.remove('active');
-    tabResults.classList.add('active');
-    tabSimulation.classList.remove('active');
-});
+// Слухачі кліків для вкладок
+tabSimBtn.addEventListener('click', () => setActiveTab(tabSimBtn, tabSimulation));
+tabResBtn.addEventListener('click', () => setActiveTab(tabResBtn, tabResults));
+tabBenchBtn.addEventListener('click', () => setActiveTab(tabBenchBtn, tabBenchmark));
 
-// 2. Функція запису результатів у таблицю
+// Функція запису результатів у таблицю (для 2-ї вкладки)
 function logToTable(optimizerName, fitness, genes) {
     const tbody = document.getElementById('resultsBody');
-    
-    // Перевіряємо, який метод фізики був обраний
     const integratorName = selectIntegrator.value === 'rk4' ? 'Рунге-Кутта (RK4)' : 'Ейлер';
     const timeStr = new Date().toLocaleTimeString();
     
@@ -276,21 +314,18 @@ function logToTable(optimizerName, fitness, genes) {
         <td>${genes[3].toFixed(4)}</td>
         <td>${genes[4].toFixed(4)}</td>
     `;
-    
-    // Додаємо новий результат на початок таблиці
     tbody.insertBefore(row, tbody.firstChild);
 }
 
-// 3. Експорт таблиці в CSV
+// Експорт таблиці в CSV
 document.getElementById('btnExportCSV').addEventListener('click', () => {
-    let csvContent = "data:text/csv;charset=utf-8,%EF%BB%BF"; // %EF%BB%BF додає підтримку UTF-8 для Excel
+    let csvContent = "data:text/csv;charset=utf-8,%EF%BB%BF";
     csvContent += "Time,Optimizer,Physics Method,Fitness,K_theta,K_dtheta,K_out,K_x,K_v\n";
     
     const rows = document.querySelectorAll("#resultsTable tbody tr");
     rows.forEach(row => {
         let rowData = [];
         row.querySelectorAll("td").forEach(cell => {
-            // Замінюємо коми на крапки, щоб не ламався формат CSV
             rowData.push(cell.innerText.replace(/,/g, ".")); 
         });
         csvContent += rowData.join(",") + "\n";
@@ -304,3 +339,147 @@ document.getElementById('btnExportCSV').addEventListener('click', () => {
     link.click();
     document.body.removeChild(link);
 });
+
+// ==========================================
+// ЛОГІКА ТРЕТЬОЇ ВКЛАДКИ: КОМПЛЕКСНИЙ БЕНЧМАРК
+// ==========================================
+
+const btnRunBenchmark = document.getElementById('btnRunBenchmark');
+const benchBody = document.getElementById('benchmarkBody');
+const benchStatus = document.getElementById('benchStatus');
+let benchmarkChartInstance = null; 
+
+function calculateStdDev(array, mean) {
+    const variance = array.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / array.length;
+    return Math.sqrt(variance);
+}
+
+if (btnRunBenchmark) {
+    btnRunBenchmark.addEventListener('click', async () => {
+        btnRunBenchmark.disabled = true;
+        btnRunBenchmark.style.opacity = "0.5";
+        
+        const RUNS_COUNT = 20;
+        const gaResults = [];
+        const psoResults = [];
+        const hybridResults = [];
+
+        // ЕТАП 1: ТЕСТ ГЕНЕТИКИ
+        benchStatus.innerHTML = "⏳ <b>Етап 1/3:</b> Тестування Генетичного алгоритму... <br>Прогрес: обчислюються 20 еволюційних циклів.";
+        benchStatus.style.color = "#856404";
+        benchStatus.style.background = "#fff3cd";
+        await new Promise(resolve => setTimeout(resolve, 100)); 
+
+        for (let r = 0; r < RUNS_COUNT; r++) {
+            ga.initPopulation();
+            for (let g = 0; g < 20; g++) { ga.evolve(); }
+            gaResults.push(ga.population[0].fitness);
+        }
+
+        // ЕТАП 2: ТЕСТ PSO
+        benchStatus.innerHTML = "⏳ <b>Етап 2/3:</b> Тестування Методу рою частинок... <br>Прогрес: обчислюються 20 запусків зграї.";
+        benchStatus.style.color = "#004085";
+        benchStatus.style.background = "#cce5ff";
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        for (let r = 0; r < RUNS_COUNT; r++) {
+            pso.initSwarm();
+            for (let i = 0; i < 30; i++) { pso.update(); }
+            psoResults.push(pso.globalBest.fitness);
+        }
+
+        // ЕТАП 3: ТЕСТ ГІБРИДУ
+        benchStatus.innerHTML = "⏳ <b>Етап 3/3:</b> Тестування Гібридного алгоритму (GA + PSO)... <br>Прогрес: обчислюються 20 комплексних каскадів навчання.";
+        benchStatus.style.color = "#3730a3";
+        benchStatus.style.background = "#e0e7ff";
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        for (let r = 0; r < RUNS_COUNT; r++) {
+            const res = hybrid.optimize();
+            hybridResults.push(res.fitness);
+        }
+
+        // ОБРОБКА РЕЗУЛЬТАТІВ
+        benchStatus.innerHTML = "🎉 <b>Аналіз завершено!</b> Статистична матриця сформована, графік побудовано успішно.";
+        benchStatus.style.color = "#155724";
+        benchStatus.style.background = "#d4edda";
+
+        const dataset = [
+            { name: 'Генетичний Алгоритм (GA)', data: gaResults },
+            { name: 'Рій Частинок (PSO)', data: psoResults },
+            { name: 'Гібрид (GA+PSO)', data: hybridResults }
+        ];
+
+        const stats = dataset.map(item => {
+            const max = Math.max(...item.data);
+            const min = Math.min(...item.data);
+            const sum = item.data.reduce((a, b) => a + b, 0);
+            const mean = sum / item.data.length;
+            const stdDev = calculateStdDev(item.data, mean);
+            return { name: item.name, mean, max, min, stdDev };
+        });
+
+        benchBody.innerHTML = '';
+        stats.forEach(s => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><b>${s.name}</b></td>
+                <td style="color: #4361ee; font-weight: bold; font-size: 1.1em;">${s.mean.toFixed(4)}</td>
+                <td style="color: #10b981; font-weight: 500;">${s.max.toFixed(4)}</td>
+                <td style="color: #ef4444;">${s.min.toFixed(4)}</td>
+                <td style="font-family: monospace;">${s.stdDev.toFixed(4)}</td>
+            `;
+            benchBody.appendChild(row);
+        });
+
+        drawBenchmarkChart(stats);
+
+        btnRunBenchmark.disabled = false;
+        btnRunBenchmark.style.opacity = "1";
+    });
+}
+
+function drawBenchmarkChart(stats) {
+    const ctx = document.getElementById('benchmarkChart').getContext('2d');
+    if (benchmarkChartInstance) {
+        benchmarkChartInstance.destroy();
+    }
+    benchmarkChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: stats.map(s => s.name),
+            datasets: [
+                {
+                    label: 'Середня ефективність (Mean)',
+                    data: stats.map(s => s.mean),
+                    backgroundColor: ['rgba(245, 158, 11, 0.7)', 'rgba(16, 185, 129, 0.7)', 'rgba(139, 92, 246, 0.7)'],
+                    borderColor: ['#d97706', '#059669', '#7c3aed'],
+                    borderWidth: 1.5,
+                    borderRadius: 6
+                },
+                {
+                    label: 'Абсолютний пік (Max)',
+                    data: stats.map(s => s.max),
+                    backgroundColor: ['rgba(245, 158, 11, 0.2)', 'rgba(16, 185, 129, 0.2)', 'rgba(139, 92, 246, 0.2)'],
+                    borderColor: ['#d97706', '#059669', '#7c3aed'],
+                    borderWidth: 1.5,
+                    borderDash: [4, 4],
+                    borderRadius: 6
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'top' },
+                title: { display: true, text: 'Порівняльний аналіз математичного очікування та рекордів' }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: { display: true, text: 'Значення Fitness' }
+                }
+            }
+        }
+    });
+}

@@ -118,7 +118,7 @@ export default class PSO {
 
         // Б. Рухаємо частинки (Формули 9 і 10 з Boubertakh, 2013)
         for (let p of this.particles) {
-            for (let i = 0; i < 3; i++) {
+            for (let i = 0; i < 5; i++) {
                 let r1 = Math.random();
                 let r2 = Math.random();
 
@@ -131,8 +131,7 @@ export default class PSO {
                 // Оновлення позиції (x)
                 p.position[i] += p.velocity[i];
 
-                // Обмеження, щоб коефіцієнти не стали від'ємними
-                if (p.position[i] < 0) p.position[i] = 0.1;
+                if (i < 3 && p.position[i] < 0) p.position[i] = 0.1;
             }
         }
 

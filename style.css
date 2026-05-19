@@ -274,6 +274,7 @@ button.accent:hover {
 .results-container {
     width: 100%;
     margin-top: 10px;
+    flex-direction: column; /* ДОДАНО: змушує елементи йти зверху вниз */
 }
 
 .results-container p {

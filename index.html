@@ -13,7 +13,46 @@
         <div class="tabs">
             <button id="tabSimBtn" class="tab-btn active">Симуляція</button>
             <button id="tabResBtn" class="tab-btn">Результати (Таблиця)</button>
+            <button id="tabBenchBtn" class="tab-btn">📊 Бенчмарк (Аналітика)</button>
         </div>
+
+            <div id="tabBenchmark" class="tab-pane">
+        <div class="container results-container">
+            <h2>Комплексний статистичний аналіз методів</h2>
+            <p>Цей модуль автоматично запускає кожен алгоритм <b>20 разів підряд</b> у фоновому режимі. На основі серії експериментів обчислюється математичне очікування (Mean), найкращий/найгірший результат та середньоквадратичне відхилення (стабільність системи).</p>
+            
+            <button id="btnRunBenchmark" class="primary" style="background-color: #ef4444; margin-bottom: 25px; width: auto; padding: 12px 25px;">
+                🚀 Запустити тест усіх методів (20 запусків)
+            </button>
+            
+            <div id="benchStatus" class="status-box" style="background: #f8fafc; text-align: left; font-weight: 600; margin-bottom: 25px;">
+                Очікування запуску тесту...
+            </div>
+
+            <h3>Порівняльна статистика (n = 20)</h3>
+            <table class="styled-table" id="benchmarkTable">
+                <thead>
+                    <tr>
+                        <th>Метод оптимізації</th>
+                        <th>Середній Fitness (Mean)</th>
+                        <th>Найкращий (Max)</th>
+                        <th>Найгірший (Min)</th>
+                        <th>Стабільність (СКО ↓)</th>
+                    </tr>
+                </thead>
+                <tbody id="benchmarkBody">
+                    <tr>
+                        <td colspan="5" style="text-align:center; color:var(--text-muted);">Дані відсутні. Натисніть кнопку "Запустити тест".</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Візуалізація збіжності та ефективності</h3>
+            <div style="width: 100%; max-width: 800px; background: #fff; padding: 20px; border-radius: 8px; border: 1px solid var(--border-color); margin-top: 15px;">
+                <canvas id="benchmarkChart"></canvas>
+            </div>
+        </div>
+    </div>
 
         <div id="tabSimulation" class="tab-pane active">
             <div class="container">
@@ -56,6 +95,7 @@
                         <h3>Оптимізація</h3>
                         <button id="btnTrainGA" class="accent">Навчити (Генетика)</button>
                         <button id="btnTrainPSO" class="accent">Навчити (Рій частинок)</button>
+                        <button id="btnTrainHybrid" class="primary" style="background-color: #8b5cf6; margin-top: 10px;">Навчити (Гібрид GA+PSO)</button>
                         <div id="trainingStatus" class="status-box">Очікування...</div>
                     </div>
 
