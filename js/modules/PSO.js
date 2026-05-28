@@ -3,11 +3,10 @@ import FuzzyLogic from './FuzzyLogic.js';
 
 export default class PSO {
     constructor() {
-        // --- НАЛАШТУВАННЯ PSO (Згідно Boubertakh, 2013) ---
+        // --- НАЛАШТУВАННЯ PSO  ---
         this.swarmSize = 20;    // Кількість частинок
         this.iterations = 0;    
         
-        // Коефіцієнти (стандартні для PSO) [cite: 814]
         this.w = 0.7;           // Інерція (Inertia weight) - як сильно частинка хоче летіти далі
         this.c1 = 1.5;          // Когнітивний коефіцієнт (тяга до свого найкращого результату)
         this.c2 = 1.5;          // Соціальний коефіцієнт (тяга до найкращого результату зграї)
@@ -29,8 +28,8 @@ export default class PSO {
                 Math.random() * 50,    // K_theta
                 Math.random() * 50,    // K_dtheta
                 Math.random() * 150,   // K_out
-                (Math.random() - 0.5) * 0.2, // K_x (теперь может быть отрицательным!)
-                (Math.random() - 0.5) * 0.2  // K_v (теперь может быть отрицательным!)
+                (Math.random() - 0.5) * 0.2, // K_x 
+                (Math.random() - 0.5) * 0.2  // K_v 
             ];
 
             // Частинка
@@ -47,7 +46,6 @@ export default class PSO {
         console.log("Рій частинок створено.");
     }
 
-    // 2. Оцінка (Така сама, як в Genetic.js)
     evaluate(params) {
         let physics = new Physics();
         let fuzzy = new FuzzyLogic();
@@ -62,11 +60,9 @@ export default class PSO {
         let frameCount = 0;
         let lastAutoForce = 0;
         
-        // Симуляция 10 секунд
         for (let t = 0; t < 500; t++) {
             frameCount++;
             
-            // Имитация задержки процессора и шума датчика во время ТРЕНИРОВКИ
             if (frameCount % 4 === 0) {
                 let perceivedState = {
                     x: physics.state.x,
@@ -82,14 +78,13 @@ export default class PSO {
             
             physics.update(lastAutoForce + windForce, 0.02);
 
-            // Штрафы
+            // Штрафи
             totalError += Math.abs(physics.state.theta) 
                         + 0.1 * Math.abs(physics.state.x) 
                         + 0.001 * Math.abs(lastAutoForce);
 
-            // Если упал - огромный штраф и прекращаем тест
             if (Math.abs(physics.state.theta) > Math.PI / 4) {
-                totalError += 10000; // Увеличили штраф за падение
+                totalError += 10000; 
                 break;
             }
         }
@@ -103,7 +98,7 @@ export default class PSO {
         for (let p of this.particles) {
             p.fitness = this.evaluate(p.position);
 
-            // Оновлюємо персональний рекорд (pBest) [cite: 814]
+            
             if (p.fitness > p.bestFitness) {
                 p.bestFitness = p.fitness;
                 p.bestPosition = [...p.position];

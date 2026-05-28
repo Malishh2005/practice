@@ -95,7 +95,8 @@ if (btnTrainPSO) {
             fuzzy.K_theta = bestParams[0];
             fuzzy.K_dtheta = bestParams[1];
             fuzzy.K_out = bestParams[2];
-
+            fuzzy.K_x = bestParams[3]; // ДОДАТИ ЦЕ
+            fuzzy.K_v = bestParams[4];
             // UI
             statusBox.innerHTML = `<b>PSO Готово!</b><br>K_a: ${bestParams[0].toFixed(2)}, K_s: ${bestParams[1].toFixed(2)}, F: ${bestParams[2].toFixed(2)}<br>K_x: ${bestParams[3].toFixed(3)}, K_v: ${bestParams[4].toFixed(3)}`;
             // ЗАПИС У ТАБЛИЦЮ:
@@ -140,7 +141,8 @@ if (btnTrainGA) {
             fuzzy.K_theta = bestGenes[0];
             fuzzy.K_dtheta = bestGenes[1];
             fuzzy.K_out = bestGenes[2];
-
+            fuzzy.K_x = bestGenes[3]; // ДОДАТИ ЦЕ
+            fuzzy.K_v = bestGenes[4];
             // 4. Оновлення інтерфейсу
             statusBox.innerHTML = `<b>GA Готово!</b><br>K_a: ${bestGenes[0].toFixed(2)}, K_s: ${bestGenes[1].toFixed(2)}, F: ${bestGenes[2].toFixed(2)}<br>K_x: ${bestGenes[3].toFixed(3)}, K_v: ${bestGenes[4].toFixed(3)}`;
             // ЗАПИС У ТАБЛИЦЮ:
@@ -483,3 +485,53 @@ function drawBenchmarkChart(stats) {
         }
     });
 }
+
+// ==========================================
+// ТЕСТ ДЛЯ ДИПЛОМУ: ВЕРИФІКАЦІЯ МЕТОДУ RK4
+// ==========================================
+// ==========================================
+// ТЕСТ ДЛЯ ДИПЛОМУ: ВЕРИФІКАЦІЯ МЕТОДУ RK4
+// ==========================================
+function runPhysicsVerification() {
+    console.log("=== СТАРТ ВЕРИФІКАЦІЇ РУНГЕ-КУТТИ (RK4) ===");
+    
+    const testPhysics = new Physics();
+    
+    // Ідеальні умови
+    testPhysics.M = 1000000; // Нерухомий візок
+    testPhysics.b1 = 0;      // Немає тертя
+    testPhysics.b2 = 0;      
+    
+    // ТИМЧАСОВО ПЕРЕВЕРТАЄМО ГРАВІТАЦІЮ, щоб маятник звисав вниз
+    testPhysics.g = -9.8;    
+
+    // Початкові умови
+    testPhysics.state.theta = 0.1;
+    testPhysics.state.omega = 0;
+    testPhysics.state.x = 0;
+    testPhysics.state.v = 0;
+    testPhysics.integrator = 'rk4';
+
+    let t = 0;
+    const dt = 0.02;
+    // Беремо модуль гравітації для формули частоти
+    const w = Math.sqrt(Math.abs(testPhysics.g) / testPhysics.l); 
+
+    console.log("Час (с) | RK4 (рад) | Точна формула | Похибка");
+    console.log("--------------------------------------------------");
+
+    for (let i = 0; i <= 100; i++) {
+        let exactTheta = 0.1 * Math.cos(w * t);
+        let error = Math.abs(testPhysics.state.theta - exactTheta);
+
+        if (i % 10 === 0) {
+            console.log(`${t.toFixed(1)}     | ${testPhysics.state.theta.toFixed(5)}   | ${exactTheta.toFixed(5)}     | ${error.toExponential(2)}`);
+        }
+
+        testPhysics.update(0, dt);
+        t += dt;
+    }
+    console.log("=== ВЕРИФІКАЦІЮ ЗАВЕРШЕНО ===");
+}
+
+setTimeout(runPhysicsVerification, 2000);
